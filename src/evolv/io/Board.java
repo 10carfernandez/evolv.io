@@ -39,6 +39,8 @@ class Board {
 	int[] populationHistory;
 	double recordPopulationEvery = 0.02f;
 	int playSpeed = 1;
+	String iceAgeToggle = "On";
+	int numIceAges = 0;
 
 	// Temperature
 	float MIN_TEMPERATURE;
@@ -173,7 +175,7 @@ class Board {
 		this.evolvioColor.textFont(font, 24);
 		this.evolvioColor.text("Population: " + creatures.size(), 10, 80);
 		String[] seasons = { "Winter", "Spring", "Summer", "Autumn" };
-		this.evolvioColor.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + this.evolvioColor.SEED, seasonTextXCoor,
+		this.evolvioColor.text(seasons[(int) (getSeason() * 4)] + "\nSeed: " + this.evolvioColor.SEED + "\nIce Ages: " + numIceAges, seasonTextXCoor,
 				30);
 
 		if (selectedCreature == null) {
@@ -249,7 +251,7 @@ class Board {
 					"-   Image every " + EvolvioColor.nf((float) imageSaveInterval, 0, 2) + " years   +",
 					"Text file now",
 					"-    Text every " + EvolvioColor.nf((float) textSaveInterval, 0, 2) + " years    +",
-					"-    Play Speed (" + playSpeed + "x)    +", "This button does nothing" };
+					"-    Play Speed (" + playSpeed + "x)    +", "Ice Ages: " + iceAgeToggle };
 			if (userControl) {
 				buttonTexts[0] = "Keyboard Control";
 			}

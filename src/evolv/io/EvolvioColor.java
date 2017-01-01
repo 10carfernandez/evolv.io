@@ -20,6 +20,19 @@ public class EvolvioColor extends PApplet {
 	final int ROCKS_TO_ADD = 0;
 	final int CREATURE_MINIMUM = 60;
 
+	// Ice Age
+	boolean includeIceAge = true;
+	final int MAX_POPULATION = 2000;
+	final float MAX_TIME_BEFORE_ICEAGE = 500;
+	final float PCT_CREATURES_LEFT = 0.6f;
+	boolean isIceAge = false;
+	float lastMinTemperature = 0.375f;
+	float lastMaxTemperature = 0.75f;
+	final float ICE_AGE_MIN_TEMPERATURE = 0f;
+	final float ICE_AGE_MAX_TEMPERATURE = 0f;	
+	float minPopulation;
+	float currentYear;
+	
 	float scaleFactor;
 	int windowWidth;
 	int windowHeight;
@@ -80,11 +93,13 @@ public class EvolvioColor extends PApplet {
 			cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
 			cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
 		} else if (dragging == 2) { // UGLY UGLY CODE. Do not look at this
-			if (evoBoard.setMinTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+			lastMinTemperature = 1.0f - (mouseY - 30) / 660.0f;
+			if (evoBoard.setMinTemperature(lastMinTemperature)) {
 				dragging = 3;
 			}
 		} else if (dragging == 3) {
-			if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+			lastMaxTemperature = 1.0f - (mouseY - 30) / 660.0f;
+			if (evoBoard.setMaxTemperature(lastMaxTemperature)) {
 				dragging = 2;
 			}
 		}
@@ -95,6 +110,34 @@ public class EvolvioColor extends PApplet {
 		} else {
 			cameraR = 0;
 		}
+		
+		  // Ice Age
+		  if (includeIceAge) {
+			  currentYear = (int)evoBoard.year;
+		    if (evoBoard.creatures.size() > MAX_POPULATION || currentYear > 0 && currentYear % MAX_TIME_BEFORE_ICEAGE == 0){
+		    	if (!isIceAge) {
+		    		minPopulation = evoBoard.creatures.size()*PCT_CREATURES_LEFT;
+		    	}
+		    	isIceAge = true;      		      
+		    }
+		    if (isIceAge){
+		      // Lower temperatures
+		      evoBoard.setMinTemperature(ICE_AGE_MIN_TEMPERATURE);
+		      evoBoard.setMaxTemperature(ICE_AGE_MAX_TEMPERATURE);
+		    }    
+		    if (evoBoard.creatures.size() < minPopulation) {
+		      if (isIceAge) {
+		        evoBoard.numIceAges++;
+		      }
+		      isIceAge = false;		      
+		      evoBoard.setMinTemperature(lastMinTemperature);
+		      evoBoard.setMaxTemperature(lastMaxTemperature);      
+		    }
+		  } else {
+		      evoBoard.setMinTemperature(lastMinTemperature);
+		      evoBoard.setMaxTemperature(lastMaxTemperature);
+		  }
+		
 		pushMatrix();
 		scale(scaleFactor);
 		evoBoard.drawBlankBoard(SCALE_TO_FIX_BUG);
@@ -223,8 +266,14 @@ public class EvolvioColor extends PApplet {
 						}
 						break;
 
-					case (7):
-						// Code for the eighth button
+					case (7):						
+						if (includeIceAge) {
+						      includeIceAge = false;
+						      evoBoard.iceAgeToggle = "Off";
+						} else {
+						  includeIceAge = true;
+						  evoBoard.iceAgeToggle = "On";
+						}
 						break;
 					}
 				}
