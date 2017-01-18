@@ -1,12 +1,18 @@
 package evolv.io;
 
+import java.io.File;
+
 import processing.core.*;
 import processing.event.*;
 
-public class EvolvioColor extends PApplet {
+public class EvolvioColor extends PApplet implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 120764456258379499L;
 	Board evoBoard;
-	final int SEED = parseInt(random(1000000));
+	int SEED = parseInt(random(1000000));
 	final float NOISE_STEP_SIZE = 0.1f;
 	final int BOARD_WIDTH = 100;
 	final int BOARD_HEIGHT = 100;
@@ -27,13 +33,17 @@ public class EvolvioColor extends PApplet {
 	float cameraY = BOARD_HEIGHT * 0.5f;
 	float cameraR = 0;
 	float zoom = 1;
-	PFont font;
+	transient PFont font;
 	int dragging = 0; // 0 = no drag, 1 = drag screen, 2 and 3 are dragging temp
 						// extremes.
 	float prevMouseX;
 	float prevMouseY;
 	boolean draggedFar = false;
-	final String INITIAL_FILE_NAME = "PIC";
+	String INITIAL_FILE_NAME = "PIC";
+
+	// Saving and loading
+	boolean loadFile = false;
+	String fullPath;
 
 	public static void main(String[] passedArgs) {
 		String[] appletArgs = new String[] { "evolv.io.EvolvioColor" };
@@ -58,60 +68,118 @@ public class EvolvioColor extends PApplet {
 		size(windowWidth, windowHeight);
 	}
 
+	public void fileSelected(File selection) {
+		if (selection != null){
+			fullPath = selection.getAbsolutePath();
+			loadFile = true;
+		}
+	}
+
+	public void folderSelected(File selection) {
+		if (selection != null){
+			INITIAL_FILE_NAME = selection.getName();
+			evoBoard.fileManager.setNewSaveDirectory(selection.getAbsolutePath());
+		}
+	}
+
+	public void setParameters(){
+		FileManager fileManager= new FileManager(this, INITIAL_FILE_NAME);
+
+		// Open file and load object
+		evoBoard = fileManager.fileLoad(fullPath);
+
+		// Update properties to match ones from the loaded object
+		this.SEED = evoBoard.evolvioColor.SEED;
+
+		// Since PApplet is not serializable, use current evolvioColor 
+		// to avoid null pointer errors when using PApplet methods
+		// Alternatively, we can use yet another library that will 
+		// make PApplet serializable.
+		int temp[] = new int[evoBoard.fileManager.fileSaveCounts.length];
+		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
+			temp[i] = evoBoard.fileManager.fileSaveCounts[i];
+		}
+		evoBoard.fileManager = new FileManager(this, INITIAL_FILE_NAME);
+		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
+			evoBoard.fileManager.fileSaveCounts[i] = temp[i];
+		}
+		evoBoard.evolvioColor = this;
+		for (int i = 0; i < evoBoard.tiles.length; i++){
+			for (int j = 0; j < evoBoard.tiles[0].length; j++){
+				evoBoard.tiles[i][j].evolvioColor = this;
+			}
+		}
+		for (int i = 0; i < evoBoard.creatures.size(); i++){
+			evoBoard.creatures.get(i).evolvioColor = this;
+			evoBoard.creatures.get(i).brain.evolvioColor = this;
+		}
+	}
+
 	@Override
 	public void setup() {
 		surface.setResizable(true);
 		colorMode(HSB, 1.0f);
 		font = loadFont("Jygquip1-48.vlw");
-		evoBoard = new Board(this, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE, ROCKS_TO_ADD,
-				CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
+		
+		if (loadFile) {
+			setParameters();
+			loadFile = false;
+		} else {
+			evoBoard = new Board(this, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE, ROCKS_TO_ADD,
+					CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
+			evoBoard.fileManager.setNewSaveDirectory(INITIAL_FILE_NAME);
+		}
 		resetZoom();
 	}
 
 	@Override
 	public void draw() {
-		for (int iteration = 0; iteration < evoBoard.playSpeed; iteration++) {
-			evoBoard.iterate(TIME_STEP);
-		}
-		if (dist(prevMouseX, prevMouseY, mouseX, mouseY) > 5) {
-			draggedFar = true;
-		}
-		if (dragging == 1) {
-			cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
-			cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
-		} else if (dragging == 2) { // UGLY UGLY CODE. Do not look at this
-			if (evoBoard.setMinTemperature(1.0f - (mouseY - 30) / 660.0f)) {
-				dragging = 3;
-			}
-		} else if (dragging == 3) {
-			if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30) / 660.0f)) {
-				dragging = 2;
-			}
-		}
-		if (evoBoard.userControl && evoBoard.selectedCreature != null) {
-			cameraX = (float) evoBoard.selectedCreature.px;
-			cameraY = (float) evoBoard.selectedCreature.py;
-			cameraR = -PI / 2.0f - (float) evoBoard.selectedCreature.rotation;
+		if (loadFile){ // Reset application
+			setup();
 		} else {
-			cameraR = 0;
-		}
-		pushMatrix();
-		scale(scaleFactor);
-		evoBoard.drawBlankBoard(SCALE_TO_FIX_BUG);
-		translate(BOARD_WIDTH * 0.5f * SCALE_TO_FIX_BUG, BOARD_HEIGHT * 0.5f * SCALE_TO_FIX_BUG);
-		scale(zoom);
-		if (evoBoard.userControl && evoBoard.selectedCreature != null) {
-			rotate(cameraR);
-		}
-		translate(-cameraX * SCALE_TO_FIX_BUG, -cameraY * SCALE_TO_FIX_BUG);
-		evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
-				(int) toWorldYCoordinate(mouseX, mouseY));
-		popMatrix();
-		evoBoard.drawUI(SCALE_TO_FIX_BUG, zoom, TIME_STEP, windowHeight, 0, windowWidth, windowHeight, font);
+			for (int iteration = 0; iteration < evoBoard.playSpeed; iteration++) {
+				evoBoard.iterate(TIME_STEP);
+			}
+			if (dist(prevMouseX, prevMouseY, mouseX, mouseY) > 5) {
+				draggedFar = true;
+			}
+			if (dragging == 1) {
+				cameraX -= toWorldXCoordinate(mouseX, mouseY) - toWorldXCoordinate(prevMouseX, prevMouseY);
+				cameraY -= toWorldYCoordinate(mouseX, mouseY) - toWorldYCoordinate(prevMouseX, prevMouseY);
+			} else if (dragging == 2) { // UGLY UGLY CODE. Do not look at this
+				if (evoBoard.setMinTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+					dragging = 3;
+				}
+			} else if (dragging == 3) {
+				if (evoBoard.setMaxTemperature(1.0f - (mouseY - 30) / 660.0f)) {
+					dragging = 2;
+				}
+			}
+			if (evoBoard.userControl && evoBoard.selectedCreature != null) {
+				cameraX = (float) evoBoard.selectedCreature.px;
+				cameraY = (float) evoBoard.selectedCreature.py;
+				cameraR = -PI / 2.0f - (float) evoBoard.selectedCreature.rotation;
+			} else {
+				cameraR = 0;
+			}
+			pushMatrix();
+			scale(scaleFactor);
+			evoBoard.drawBlankBoard(SCALE_TO_FIX_BUG);
+			translate(BOARD_WIDTH * 0.5f * SCALE_TO_FIX_BUG, BOARD_HEIGHT * 0.5f * SCALE_TO_FIX_BUG);
+			scale(zoom);
+			if (evoBoard.userControl && evoBoard.selectedCreature != null) {
+				rotate(cameraR);
+			}
+			translate(-cameraX * SCALE_TO_FIX_BUG, -cameraY * SCALE_TO_FIX_BUG);
+			evoBoard.drawBoard(SCALE_TO_FIX_BUG, zoom, (int) toWorldXCoordinate(mouseX, mouseY),
+					(int) toWorldYCoordinate(mouseX, mouseY));
+			popMatrix();
+			evoBoard.drawUI(SCALE_TO_FIX_BUG, zoom, TIME_STEP, windowHeight, 0, windowWidth, windowHeight, font);
 
-		evoBoard.fileSave();
-		prevMouseX = mouseX;
-		prevMouseY = mouseY;
+			evoBoard.fileManager.fileSave(this.evoBoard);
+			prevMouseX = mouseX;
+			prevMouseY = mouseY;
+		}
 	}
 
 	@Override
@@ -148,7 +216,7 @@ public class EvolvioColor extends PApplet {
 				float x = (mouseX - (windowHeight + 10));
 				float y = (mouseY - 570);
 				boolean clickedOnLeft = (x % 230 < 110);
-				if (x >= 0 && x < 460 && y >= 0 && y < 200 && x % 230 < 220 && y % 50 < 40) { // 460
+				if (x >= 0 && x < 230*Board.columns && y >= 0 && y < 200 && x % 230 < 220 && y % 50 < 40) { // 460
 																								// =
 																								// 2
 																								// *
@@ -161,7 +229,7 @@ public class EvolvioColor extends PApplet {
 																								// 50
 					int mX = (int) (x / 230);
 					int mY = (int) (y / 50);
-					int buttonNum = mX + mY * 2;
+					int buttonNum = mX + mY * Board.columns;
 
 					switch (buttonNum) {
 
@@ -169,7 +237,7 @@ public class EvolvioColor extends PApplet {
 						evoBoard.userControl = !evoBoard.userControl;
 						break;
 
-					case (1):
+					case (3):
 						if (clickedOnLeft) {
 							evoBoard.creatureMinimum -= evoBoard.creatureMinimumIncrement;
 						} else {
@@ -177,33 +245,33 @@ public class EvolvioColor extends PApplet {
 						}
 						break;
 
-					case (2):
-						evoBoard.prepareForFileSave(0);
+					case (5):
+						evoBoard.fileManager.prepareForFileSave(0);
 						break;
 
-					case (3):
+					case (8):
 						if (clickedOnLeft) {
-							evoBoard.imageSaveInterval *= 0.5f;
+							evoBoard.fileManager.imageSaveInterval *= 0.5f;
 						} else {
-							evoBoard.imageSaveInterval *= 2.0f;
+							evoBoard.fileManager.imageSaveInterval *= 2.0f;
 						}
-						if (evoBoard.imageSaveInterval >= 0.7f) {
-							evoBoard.imageSaveInterval = Math.round(evoBoard.imageSaveInterval);
+						if (evoBoard.fileManager.imageSaveInterval >= 0.7f) {
+							evoBoard.fileManager.imageSaveInterval = Math.round(evoBoard.fileManager.imageSaveInterval);
 						}
 						break;
 
 					case (4):
-						evoBoard.prepareForFileSave(2);
+						evoBoard.fileManager.prepareForFileSave(2);
 						break;
 
-					case (5):
+					case (7):
 						if (clickedOnLeft) {
-							evoBoard.textSaveInterval *= 0.5f;
+							evoBoard.fileManager.textSaveInterval *= 0.5f;
 						} else {
-							evoBoard.textSaveInterval *= 2.0f;
+							evoBoard.fileManager.textSaveInterval *= 2.0f;
 						}
-						if (evoBoard.textSaveInterval >= 0.7f) {
-							evoBoard.textSaveInterval = Math.round(evoBoard.textSaveInterval);
+						if (evoBoard.fileManager.textSaveInterval >= 0.7f) {
+							evoBoard.fileManager.textSaveInterval = Math.round(evoBoard.fileManager.textSaveInterval);
 						}
 						break;
 
@@ -223,8 +291,15 @@ public class EvolvioColor extends PApplet {
 						}
 						break;
 
-					case (7):
+					case (1):
 						// Code for the eighth button
+						selectInput("Select a file to process:", "fileSelected");
+						break;
+
+					case (2):
+						// Code for the ninth button
+						File folder = new File(INITIAL_FILE_NAME);
+						selectFolder("Select a new save directory:", "folderSelected", folder);
 						break;
 					}
 				}

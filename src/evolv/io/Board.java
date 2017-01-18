@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 import processing.core.PFont;
 
-class Board {
+class Board implements java.io.Serializable {
 	/**
 	 * 
 	 */
-	private final EvolvioColor evolvioColor;
+	private static final long serialVersionUID = 8492808169926244015L;
+	/**
+	 * 
+	 */
+	public EvolvioColor evolvioColor;
 	// Board
 	int boardWidth;
 	int boardHeight;
@@ -55,18 +59,13 @@ class Board {
 	final int ROCK_COLOR;
 	ArrayList<SoftBody> rocks;
 
-	// Saving
-	int[] fileSaveCounts;
-	double[] fileSaveTimes;
-	double imageSaveInterval = 1;
-	double textSaveInterval = 1;
-
 	// Misc or Unsorted
 	final int BACKGROUND_COLOR;
 	final static double MAX_DETAILED_ZOOM = 3.5f; // Maximum zoom to draw
 													// details at
+	FileManager fileManager;
 	int buttonColor;
-	String folder = "TEST";
+	public static int columns = 3;
 	final double FLASH_SPEED = 80;
 	boolean userControl;
 
@@ -120,14 +119,10 @@ class Board {
 		for (int i = 0; i < LIST_SLOTS; i++) {
 			list[i] = null;
 		}
-		folder = INITIAL_FILE_NAME;
-		fileSaveCounts = new int[4];
-		fileSaveTimes = new double[4];
-		for (int i = 0; i < 4; i++) {
-			fileSaveCounts[i] = 0;
-			fileSaveTimes[i] = -999;
-		}
 		userControl = true;
+
+		fileManager = new FileManager(this.evolvioColor, INITIAL_FILE_NAME);
+		fileManager.year = this.year;
 		timeStep = ts;
 		populationHistory = new int[POPULATION_HISTORY_LENGTH];
 		for (int i = 0; i < POPULATION_HISTORY_LENGTH; i++) {
@@ -245,33 +240,52 @@ class Board {
 			this.evolvioColor.text("Sort by: " + sorts[creatureRankMetric], 350, 123);
 
 			this.evolvioColor.textFont(font, 19);
+			/*
 			String[] buttonTexts = { "Brain Control", "Maintain pop. at " + creatureMinimum, "Screenshot now",
-					"-   Image every " + EvolvioColor.nf((float) imageSaveInterval, 0, 2) + " years   +",
+					"-   Image every " + EvolvioColor.nf((float) fileManager.imageSaveInterval, 0, 2) + " years   +",
 					"Text file now",
-					"-    Text every " + EvolvioColor.nf((float) textSaveInterval, 0, 2) + " years    +",
-					"-    Play Speed (" + playSpeed + "x)    +", "This button does nothing" };
+					"-    Text every " + EvolvioColor.nf((float) fileManager.textSaveInterval, 0, 2) + " years    +",
+					"-    Play Speed (" + playSpeed + "x)    +", "Load File", "Change Save Folder" };
+					*/
+			String[] buttonTexts = {
+					"Brain Control",
+					"Load File",
+					"Change Save Folder",
+					"Maintain pop. at " + creatureMinimum,
+					"Text file now",
+					"Screenshot Now",
+					"-    Play Speed (" + playSpeed + "x)    +",
+					"-    Text every " + EvolvioColor.nf((float) fileManager.textSaveInterval, 0, 2) + " years    +",
+					"-   Image every " + EvolvioColor.nf((float) fileManager.imageSaveInterval, 0, 2) + " years   +"
+			};
 			if (userControl) {
 				buttonTexts[0] = "Keyboard Control";
 			}
-			for (int i = 0; i < 8; i++) {
-				float x = (i % 2) * 230 + 10;
-				float y = EvolvioColor.floor(i / 2) * 50 + 570;
+			for (int i = 0; i < buttonTexts.length; i++) {
+				float x = (i % columns) * 230 + 10;
+				float y = EvolvioColor.floor(i / columns) * 50 + 570;
 				this.evolvioColor.fill(buttonColor);
 				this.evolvioColor.rect(x, y, 220, 40);
-				if (i >= 2 && i < 6) {
-					double flashAlpha = 1.0f * Math.pow(0.5f, (year - fileSaveTimes[i - 2]) * FLASH_SPEED);
+				if (i >= columns && i < 6) {
+					double flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[i - 2]) * FLASH_SPEED);
 					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
 					this.evolvioColor.rect(x, y, 220, 40);
 				}
 				this.evolvioColor.fill(0, 0, 1, 1);
 				this.evolvioColor.text(buttonTexts[i], x + 110, y + 17);
 				if (i == 0) {
-				} else if (i == 1) {
+				} else if (i == 3) {
 					this.evolvioColor.text(
 							"-" + creatureMinimumIncrement + "                    +" + creatureMinimumIncrement,
 							x + 110, y + 37);
-				} else if (i <= 5) {
-					this.evolvioColor.text(getNextFileName(i - 2), x + 110, y + 37);
+				} else if (i == 5) {
+					this.evolvioColor.text(fileManager.getNextFileName(0), x + 110, y + 37);
+				} else if (i == 8) {
+					this.evolvioColor.text(fileManager.getNextFileName(1), x + 110, y + 37);
+				} else if (i == 4) {
+					this.evolvioColor.text(fileManager.getNextFileName(2), x + 110, y + 37);
+				} else if (i == 7) {
+					this.evolvioColor.text(fileManager.getNextFileName(3), x + 110, y + 37);
 				}
 			}
 		} else {
@@ -358,18 +372,10 @@ class Board {
 		}
 	}
 
-	public String getNextFileName(int type) {
-		String[] modes = { "manualImgs", "autoImgs", "manualTexts", "autoTexts" };
-		String ending = ".png";
-		if (type >= 2) {
-			ending = ".txt";
-		}
-		return folder + "/" + modes[type] + "/" + EvolvioColor.nf(fileSaveCounts[type], 5) + ending;
-	}
-
 	public void iterate(double timeStep) {
 		double prevYear = year;
 		year += timeStep;
+		this.fileManager.year = year;
 		if (Math.floor(year / recordPopulationEvery) != Math.floor(prevYear / recordPopulationEvery)) {
 			for (int i = POPULATION_HISTORY_LENGTH - 1; i >= 1; i--) {
 				populationHistory[i] = populationHistory[i - 1];
@@ -458,11 +464,11 @@ class Board {
 			creatures.get(i).applyMotions(timeStep * OBJECT_TIMESTEPS_PER_YEAR);
 			creatures.get(i).see(timeStep * OBJECT_TIMESTEPS_PER_YEAR);
 		}
-		if (Math.floor(fileSaveTimes[1] / imageSaveInterval) != Math.floor(year / imageSaveInterval)) {
-			prepareForFileSave(1);
+		if (Math.floor(fileManager.fileSaveTimes[1] / fileManager.imageSaveInterval) != Math.floor(year / fileManager.imageSaveInterval)) {
+			fileManager.prepareForFileSave(1);
 		}
-		if (Math.floor(fileSaveTimes[3] / textSaveInterval) != Math.floor(year / textSaveInterval)) {
-			prepareForFileSave(3);
+		if (Math.floor(fileManager.fileSaveTimes[3] / fileManager.textSaveInterval) != Math.floor(year / fileManager.textSaveInterval)) {
+			fileManager.prepareForFileSave(3);
 		}
 	}
 
@@ -594,25 +600,6 @@ class Board {
 		this.evolvioColor.popMatrix();
 	}
 
-	void prepareForFileSave(int type) {
-		fileSaveTimes[type] = -999999;
-	}
-
-	void fileSave() {
-		for (int i = 0; i < 4; i++) {
-			if (fileSaveTimes[i] < -99999) {
-				fileSaveTimes[i] = year;
-				if (i < 2) {
-					this.evolvioColor.saveFrame(getNextFileName(i));
-				} else {
-					String[] data = this.toBigString();
-					this.evolvioColor.saveStrings(getNextFileName(i), data);
-				}
-				fileSaveCounts[i]++;
-			}
-		}
-	}
-
 	public void incrementSort() {
 		this.evolvioColor.evoBoard.creatureRankMetric = (this.evolvioColor.evoBoard.creatureRankMetric + 1)
 				% sorts.length;
@@ -626,7 +613,8 @@ class Board {
 	public String[] toBigString() { // Convert current evolvio board into
 									// string. Does not work
 		String[] placeholder = { "Goo goo", "Ga ga" };
-		return placeholder;
+		String saveString[] = placeholder;
+		return saveString;
 	}
 
 	public void unselect() {

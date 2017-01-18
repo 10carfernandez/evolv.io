@@ -2,11 +2,15 @@ package evolv.io;
 
 import java.util.ArrayList;
 
-class SoftBody {
+class SoftBody implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	private final EvolvioColor evolvioColor;
+	private static final long serialVersionUID = -1015609094686172150L;
+	/**
+	 * 
+	 */
+	public EvolvioColor evolvioColor;
 	double px;
 	double py;
 	double vx;
@@ -38,7 +42,6 @@ class SoftBody {
 
 	public SoftBody(EvolvioColor evolvioColor, double tpx, double tpy, double tvx, double tvy, double tenergy,
 			double tdensity, double thue, double tsaturation, double tbrightness, Board tb) {
-		this.evolvioColor = evolvioColor;
 		px = tpx;
 		py = tpy;
 		vx = tvx;
@@ -49,6 +52,7 @@ class SoftBody {
 		saturation = tsaturation;
 		brightness = tbrightness;
 		board = tb;
+		this.evolvioColor = tb.evolvioColor;
 		setSBIP(false);
 		setSBIP(false); // Just to set previous SBIPs as well.
 		birthTime = tb.year;
@@ -139,6 +143,7 @@ class SoftBody {
 
 	public void drawSoftBody(float scaleUp) {
 		double radius = getRadius();
+		this.evolvioColor = board.evolvioColor;
 		this.evolvioColor.stroke(0);
 		this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
 		this.evolvioColor.fill((float) hue, (float) saturation, (float) brightness);

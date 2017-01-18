@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 import processing.core.PFont;
 
-class Creature extends SoftBody {
+public class Creature extends SoftBody implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	private final EvolvioColor evolvioColor;
+	private static final long serialVersionUID = 476572589771857421L;
+	/**
+	 * 
+	 */
+	public EvolvioColor evolvioColor;
 	// Energy
 	double ACCELERATION_ENERGY = 0.18f;
 	double ACCELERATION_BACK_ENERGY = 0.24f;
@@ -474,6 +478,7 @@ class Creature extends SoftBody {
 				double newMouthHue = 0;
 				int parentsTotal = parents.size();
 				String[] parentNames = new String[parentsTotal];
+				int[] parentIds= new int[parentsTotal];
 				Brain newBrain = brain.evolve(parents);
 				for (int i = 0; i < parentsTotal; i++) {
 					int chosenIndex = (int) this.evolvioColor.random(0, parents.size());
@@ -487,6 +492,7 @@ class Creature extends SoftBody {
 					newBrightness += parent.brightness / parentsTotal;
 					newMouthHue += parent.mouthHue / parentsTotal;
 					parentNames[i] = parent.name;
+					parentIds[i] = parent.id;
 					if (parent.gen > highestGen) {
 						highestGen = parent.gen;
 					}

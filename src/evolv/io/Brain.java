@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 import processing.core.PFont;
 
-class Brain {
+class Brain implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	private final EvolvioColor evolvioColor;
+	private static final long serialVersionUID = -4169230432277897483L;
+	/**
+	 * 
+	 */
+	public EvolvioColor evolvioColor;
 	// Brain
 	final int MEMORY_COUNT = 1;
 	final int BRAIN_WIDTH = 3;

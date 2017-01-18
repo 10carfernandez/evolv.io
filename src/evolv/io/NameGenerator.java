@@ -1,6 +1,10 @@
 package evolv.io;
 
-class NameGenerator {
+class NameGenerator implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6091853690780817687L;
 	/**
 	 * 
 	 */

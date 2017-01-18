@@ -1,10 +1,14 @@
 package evolv.io;
 
-class Tile {
+class Tile implements java.io.Serializable {
 	/**
 	 * 
 	 */
-	private final EvolvioColor evolvioColor;
+	private static final long serialVersionUID = 549301346167185645L;
+	/**
+	 * 
+	 */
+	public EvolvioColor evolvioColor;
 	public final int barrenColor;
 	public final int fertileColor;
 	public final int blackColor;

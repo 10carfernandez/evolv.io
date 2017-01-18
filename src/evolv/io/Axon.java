@@ -1,6 +1,10 @@
 package evolv.io;
 
-class Axon {
+class Axon implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1369840006114199775L;
 	final double MUTABILITY_MUTABILITY = 0.7f;
 	final int mutatePower = 9;
 	final double MUTATE_MULTI;
@@ -25,5 +29,5 @@ class Axon {
 
 	public double pmRan() {
 		return Math.random() * 2 - 1;
-	}
+	}	
 }
