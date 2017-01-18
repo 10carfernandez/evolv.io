@@ -261,16 +261,12 @@ class Board implements java.io.Serializable {
 			if (userControl) {
 				buttonTexts[0] = "Keyboard Control";
 			}
+			double flashAlpha;
 			for (int i = 0; i < buttonTexts.length; i++) {
 				float x = (i % columns) * 230 + 10;
 				float y = EvolvioColor.floor(i / columns) * 50 + 570;
 				this.evolvioColor.fill(buttonColor);
 				this.evolvioColor.rect(x, y, 220, 40);
-				if (i >= columns && i < 6) {
-					double flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[i - 2]) * FLASH_SPEED);
-					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
-					this.evolvioColor.rect(x, y, 220, 40);
-				}
 				this.evolvioColor.fill(0, 0, 1, 1);
 				this.evolvioColor.text(buttonTexts[i], x + 110, y + 17);
 				if (i == 0) {
@@ -280,12 +276,24 @@ class Board implements java.io.Serializable {
 							x + 110, y + 37);
 				} else if (i == 5) {
 					this.evolvioColor.text(fileManager.getNextFileName(0), x + 110, y + 37);
+					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[0]) * FLASH_SPEED);
+					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
+					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 8) {
 					this.evolvioColor.text(fileManager.getNextFileName(1), x + 110, y + 37);
+					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[1]) * FLASH_SPEED);
+					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
+					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 4) {
 					this.evolvioColor.text(fileManager.getNextFileName(2), x + 110, y + 37);
+					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[2]) * FLASH_SPEED);
+					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
+					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 7) {
 					this.evolvioColor.text(fileManager.getNextFileName(3), x + 110, y + 37);
+					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[3]) * FLASH_SPEED);
+					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
+					this.evolvioColor.rect(x, y, 220, 40);
 				}
 			}
 		} else {
