@@ -12,7 +12,6 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	public EvolvioColor evolvioColor;
 	// Energy
 	double ACCELERATION_ENERGY = 0.18f;
 	double ACCELERATION_BACK_ENERGY = 0.24f;
@@ -67,25 +66,24 @@ public class Creature extends SoftBody implements java.io.Serializable{
 
 	NameGenerator nameGenerator;
 
-	public Creature(EvolvioColor evolvioColor, Board tb) {
-		this(evolvioColor, evolvioColor.random(0, tb.boardWidth),
-				evolvioColor.random(0, tb.boardHeight), 0, 0,
-				evolvioColor.random(tb.MIN_CREATURE_ENERGY, tb.MAX_CREATURE_ENERGY), 1,
-				evolvioColor.random(0, 1), 1, 1, tb,
-				evolvioColor.random(0, 2 * EvolvioColor.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
-				evolvioColor.random(0, 1));
+	public Creature(Board tb) {
+		this(tb.evolvioColor.random(0, tb.boardWidth),
+				tb.evolvioColor.random(0, tb.boardHeight), 0, 0,
+				tb.evolvioColor.random(tb.MIN_CREATURE_ENERGY, tb.MAX_CREATURE_ENERGY), 1,
+				tb.evolvioColor.random(0, 1), 1, 1, tb,
+				tb.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
+				tb.evolvioColor.random(0, 1));
 	}
 
-	public Creature(EvolvioColor evolvioColor, double tpx, double tpy, double tvx, double tvy, double tenergy,
+	public Creature(double tpx, double tpy, double tvx, double tvy, double tenergy,
 			double tdensity, double thue, double tsaturation, double tbrightness, Board tb, double rot,
 			double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue) {
 
-		super(evolvioColor, tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb);
-		nameGenerator = new NameGenerator(evolvioColor);
-		this.evolvioColor = evolvioColor;
+		super(tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb);
+		nameGenerator = new NameGenerator(tb.evolvioColor);
 
 		if (brain == null)
-			brain = new Brain(this.evolvioColor, null, null);
+			brain = new Brain(tb, null, null);
 		this.brain = brain;
 
 		rotation = rot;
@@ -143,22 +141,22 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	}
 
 	public void drawSoftBody(float scaleUp, float camZoom, boolean showVision) {
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
+		board.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
 		double radius = getRadius();
 		if (showVision && camZoom > Board.MAX_DETAILED_ZOOM) {
 			drawVisionAngles(board, scaleUp);
 		}
-		this.evolvioColor.noStroke();
+		board.evolvioColor.noStroke();
 		if (fightLevel > 0) {
-			this.evolvioColor.fill(0, 1, 1, (float) (fightLevel * 0.8f));
-			this.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
+			board.evolvioColor.fill(0, 1, 1, (float) (fightLevel * 0.8f));
+			board.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
 					(float) (FIGHT_RANGE * radius * scaleUp), (float) (FIGHT_RANGE * radius * scaleUp));
 		}
-		this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
-		this.evolvioColor.stroke(0, 0, 1);
-		this.evolvioColor.fill(0, 0, 1);
+		board.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
+		board.evolvioColor.stroke(0, 0, 1);
+		board.evolvioColor.fill(0, 0, 1);
 		if (this == board.selectedCreature) {
-			this.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
+			board.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
 					(float) (radius * scaleUp + 1 + 75.0f / camZoom), (float) (radius * scaleUp + 1 + 75.0f / camZoom));
 		}
 		super.drawSoftBody(scaleUp);
@@ -166,10 +164,10 @@ public class Creature extends SoftBody implements java.io.Serializable{
 		if (camZoom > Board.MAX_DETAILED_ZOOM) {
 			drawMouth(board, scaleUp, radius, rotation, camZoom, mouthHue);
 			if (showVision) {
-				this.evolvioColor.fill(0, 0, 1);
-				this.evolvioColor.textFont(this.evolvioColor.font, 0.2f * scaleUp);
-				this.evolvioColor.textAlign(EvolvioColor.CENTER);
-				this.evolvioColor.text(getCreatureName(), (float) (px * scaleUp),
+				board.evolvioColor.fill(0, 0, 1);
+				board.evolvioColor.textFont(board.evolvioColor.font, 0.2f * scaleUp);
+				board.evolvioColor.textAlign(EvolvioColor.CENTER);
+				board.evolvioColor.text(getCreatureName(), (float) (px * scaleUp),
 						(float) ((py - getRadius() * 1.4f - 0.07f) * scaleUp));
 			}
 		}
@@ -177,27 +175,27 @@ public class Creature extends SoftBody implements java.io.Serializable{
 
 	public void drawVisionAngles(Board board, float scaleUp) {
 		for (int i = 0; i < visionAngles.length; i++) {
-			int visionUIcolor = this.evolvioColor.color(0, 0, 1);
+			int visionUIcolor = board.evolvioColor.color(0, 0, 1);
 			if (visionResults[i * 3 + 2] > BRIGHTNESS_THRESHOLD) {
-				visionUIcolor = this.evolvioColor.color(0, 0, 0);
+				visionUIcolor = board.evolvioColor.color(0, 0, 0);
 			}
-			this.evolvioColor.stroke(visionUIcolor);
-			this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
+			board.evolvioColor.stroke(visionUIcolor);
+			board.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
 			float endX = (float) getVisionEndX(i);
 			float endY = (float) getVisionEndY(i);
-			this.evolvioColor.line((float) (px * scaleUp), (float) (py * scaleUp), endX * scaleUp, endY * scaleUp);
-			this.evolvioColor.noStroke();
-			this.evolvioColor.fill(visionUIcolor);
-			this.evolvioColor.ellipse((float) (visionOccludedX[i] * scaleUp), (float) (visionOccludedY[i] * scaleUp),
+			board.evolvioColor.line((float) (px * scaleUp), (float) (py * scaleUp), endX * scaleUp, endY * scaleUp);
+			board.evolvioColor.noStroke();
+			board.evolvioColor.fill(visionUIcolor);
+			board.evolvioColor.ellipse((float) (visionOccludedX[i] * scaleUp), (float) (visionOccludedY[i] * scaleUp),
 					2 * CROSS_SIZE * scaleUp, 2 * CROSS_SIZE * scaleUp);
-			this.evolvioColor.stroke((float) (visionResults[i * 3]), (float) (visionResults[i * 3 + 1]),
+			board.evolvioColor.stroke((float) (visionResults[i * 3]), (float) (visionResults[i * 3 + 1]),
 					(float) (visionResults[i * 3 + 2]));
-			this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
-			this.evolvioColor.line((float) ((visionOccludedX[i] - CROSS_SIZE) * scaleUp),
+			board.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
+			board.evolvioColor.line((float) ((visionOccludedX[i] - CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedY[i] - CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedX[i] + CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedY[i] + CROSS_SIZE) * scaleUp));
-			this.evolvioColor.line((float) ((visionOccludedX[i] - CROSS_SIZE) * scaleUp),
+			board.evolvioColor.line((float) ((visionOccludedX[i] - CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedY[i] + CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedX[i] + CROSS_SIZE) * scaleUp),
 					(float) ((visionOccludedY[i] - CROSS_SIZE) * scaleUp));
@@ -205,21 +203,21 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	}
 
 	public void drawMouth(Board board, float scaleUp, double radius, double rotation, float camZoom, double mouthHue) {
-		this.evolvioColor.noFill();
-		this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
-		this.evolvioColor.stroke(0, 0, 1);
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
-		this.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
+		board.evolvioColor.noFill();
+		board.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
+		board.evolvioColor.stroke(0, 0, 1);
+		board.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
+		board.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp),
 				board.MINIMUM_SURVIVABLE_SIZE * scaleUp, board.MINIMUM_SURVIVABLE_SIZE * scaleUp);
-		this.evolvioColor.pushMatrix();
-		this.evolvioColor.translate((float) (px * scaleUp), (float) (py * scaleUp));
-		this.evolvioColor.scale((float) radius);
-		this.evolvioColor.rotate((float) rotation);
-		this.evolvioColor.strokeWeight((float) (board.CREATURE_STROKE_WEIGHT / radius));
-		this.evolvioColor.stroke(0, 0, 0);
-		this.evolvioColor.fill((float) mouthHue, 1.0f, 1.0f);
-		this.evolvioColor.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
-		this.evolvioColor.popMatrix();
+		board.evolvioColor.pushMatrix();
+		board.evolvioColor.translate((float) (px * scaleUp), (float) (py * scaleUp));
+		board.evolvioColor.scale((float) radius);
+		board.evolvioColor.rotate((float) rotation);
+		board.evolvioColor.strokeWeight((float) (board.CREATURE_STROKE_WEIGHT / radius));
+		board.evolvioColor.stroke(0, 0, 0);
+		board.evolvioColor.fill((float) mouthHue, 1.0f, 1.0f);
+		board.evolvioColor.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
+		board.evolvioColor.popMatrix();
 	}
 
 	public void metabolize(double timeStep) {
@@ -341,9 +339,9 @@ public class Creature extends SoftBody implements java.io.Serializable{
 			visionOccludedX[k] = endX;
 			visionOccludedY[k] = endY;
 			int c = getColorAt(endX, endY);
-			visionResults[k * 3] = this.evolvioColor.hue(c);
-			visionResults[k * 3 + 1] = this.evolvioColor.saturation(c);
-			visionResults[k * 3 + 2] = this.evolvioColor.brightness(c);
+			visionResults[k * 3] = board.evolvioColor.hue(c);
+			visionResults[k * 3 + 1] = board.evolvioColor.saturation(c);
+			visionResults[k * 3 + 2] = board.evolvioColor.brightness(c);
 
 			int tileX = 0;
 			int tileY = 0;
@@ -464,8 +462,8 @@ public class Creature extends SoftBody implements java.io.Serializable{
 				}
 			}
 			if (availableEnergy > babySize) {
-				double newPX = this.evolvioColor.random(-0.01f, 0.01f);
-				double newPY = this.evolvioColor.random(-0.01f, 0.01f); // To
+				double newPX = board.evolvioColor.random(-0.01f, 0.01f);
+				double newPY = board.evolvioColor.random(-0.01f, 0.01f); // To
 																		// avoid
 																		// landing
 				// directly on
@@ -481,7 +479,7 @@ public class Creature extends SoftBody implements java.io.Serializable{
 				int[] parentIds= new int[parentsTotal];
 				Brain newBrain = brain.evolve(parents);
 				for (int i = 0; i < parentsTotal; i++) {
-					int chosenIndex = (int) this.evolvioColor.random(0, parents.size());
+					int chosenIndex = (int) board.evolvioColor.random(0, parents.size());
 					Creature parent = parents.get(chosenIndex);
 					parents.remove(chosenIndex);
 					parent.energy -= babySize * (parent.getBabyEnergy() / availableEnergy);
@@ -499,9 +497,9 @@ public class Creature extends SoftBody implements java.io.Serializable{
 				}
 				newSaturation = 1;
 				newBrightness = 1;
-				board.creatures.add(new Creature(this.evolvioColor, newPX, newPY, 0, 0, babySize, density, newHue,
+				board.creatures.add(new Creature(newPX, newPY, 0, 0, babySize, density, newHue,
 						newSaturation, newBrightness, board,
-						this.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, stitchName(parentNames),
+						board.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, stitchName(parentNames),
 						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue));
 			}
 		}

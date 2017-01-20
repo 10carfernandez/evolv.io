@@ -86,7 +86,9 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		FileManager fileManager= new FileManager(this, INITIAL_FILE_NAME);
 
 		// Open file and load object
-		evoBoard = fileManager.fileLoad(fullPath);
+		if (fileManager.fileLoad(fullPath) != null){
+			evoBoard = fileManager.fileLoad(fullPath);
+		}
 
 		// Update properties to match ones from the loaded object
 		this.SEED = evoBoard.evolvioColor.SEED;
@@ -104,15 +106,6 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 			evoBoard.fileManager.fileSaveCounts[i] = temp[i];
 		}
 		evoBoard.evolvioColor = this;
-		for (int i = 0; i < evoBoard.tiles.length; i++){
-			for (int j = 0; j < evoBoard.tiles[0].length; j++){
-				evoBoard.tiles[i][j].evolvioColor = this;
-			}
-		}
-		for (int i = 0; i < evoBoard.creatures.size(); i++){
-			evoBoard.creatures.get(i).evolvioColor = this;
-			evoBoard.creatures.get(i).brain.evolvioColor = this;
-		}
 	}
 
 	@Override

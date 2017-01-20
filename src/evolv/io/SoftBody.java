@@ -10,7 +10,6 @@ class SoftBody implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	public EvolvioColor evolvioColor;
 	double px;
 	double py;
 	double vx;
@@ -40,7 +39,7 @@ class SoftBody implements java.io.Serializable{
 	ArrayList<SoftBody> colliders;
 	Board board;
 
-	public SoftBody(EvolvioColor evolvioColor, double tpx, double tpy, double tvx, double tvy, double tenergy,
+	public SoftBody(double tpx, double tpy, double tvx, double tvy, double tenergy,
 			double tdensity, double thue, double tsaturation, double tbrightness, Board tb) {
 		px = tpx;
 		py = tpy;
@@ -52,7 +51,6 @@ class SoftBody implements java.io.Serializable{
 		saturation = tsaturation;
 		brightness = tbrightness;
 		board = tb;
-		this.evolvioColor = tb.evolvioColor;
 		setSBIP(false);
 		setSBIP(false); // Just to set previous SBIPs as well.
 		birthTime = tb.year;
@@ -143,12 +141,11 @@ class SoftBody implements java.io.Serializable{
 
 	public void drawSoftBody(float scaleUp) {
 		double radius = getRadius();
-		this.evolvioColor = board.evolvioColor;
-		this.evolvioColor.stroke(0);
-		this.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
-		this.evolvioColor.fill((float) hue, (float) saturation, (float) brightness);
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
-		this.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp), (float) (radius * scaleUp),
+		board.evolvioColor.stroke(0);
+		board.evolvioColor.strokeWeight(board.CREATURE_STROKE_WEIGHT);
+		board.evolvioColor.fill((float) hue, (float) saturation, (float) brightness);
+		board.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
+		board.evolvioColor.ellipse((float) (px * scaleUp), (float) (py * scaleUp), (float) (radius * scaleUp),
 				(float) (radius * scaleUp));
 	}
 

@@ -12,7 +12,7 @@ class Brain implements java.io.Serializable{
 	/**
 	 * 
 	 */
-	public EvolvioColor evolvioColor;
+	Board board;
 	// Brain
 	final int MEMORY_COUNT = 1;
 	final int BRAIN_WIDTH = 3;
@@ -26,9 +26,9 @@ class Brain implements java.io.Serializable{
 	String[] inputLabels = new String[BRAIN_HEIGHT];
 	String[] outputLabels = new String[BRAIN_HEIGHT];
 
-	public Brain(EvolvioColor evolvioColor, Axon[][][] tbrain, double[][] tneurons) {
-		this.evolvioColor = evolvioColor;
+	public Brain(Board board, Axon[][][] tbrain, double[][] tneurons) {
 		// initialize brain
+		this.board = board;
 		if (tbrain == null) {
 			axons = new Axon[BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
 			neurons = new double[BRAIN_WIDTH][BRAIN_HEIGHT];
@@ -78,7 +78,7 @@ class Brain implements java.io.Serializable{
 		int parentsTotal = parents.size();
 		Axon[][][] newBrain = new Axon[BRAIN_WIDTH - 1][BRAIN_HEIGHT][BRAIN_HEIGHT - 1];
 		double[][] newNeurons = new double[BRAIN_WIDTH][BRAIN_HEIGHT];
-		float randomParentRotation = this.evolvioColor.random(0, 1);
+		float randomParentRotation = board.evolvioColor.random(0, 1);
 		for (int x = 0; x < BRAIN_WIDTH - 1; x++) {
 			for (int y = 0; y < BRAIN_HEIGHT; y++) {
 				for (int z = 0; z < BRAIN_HEIGHT - 1; z++) {
@@ -98,36 +98,36 @@ class Brain implements java.io.Serializable{
 				newNeurons[x][y] = parentForAxon.neurons[x][y];
 			}
 		}
-		return new Brain(this.evolvioColor, newBrain, newNeurons);
+		return new Brain(this.board, newBrain, newNeurons);
 	}
 
 	public void draw(PFont font, float scaleUp, int mX, int mY) {
 		final float neuronSize = 0.4f;
-		this.evolvioColor.noStroke();
-		this.evolvioColor.fill(0, 0, 0.4f);
-		this.evolvioColor.rect((-1.7f - neuronSize) * scaleUp, -neuronSize * scaleUp, (2.4f + BRAIN_WIDTH + neuronSize * 2) * scaleUp,
+		board.evolvioColor.noStroke();
+		board.evolvioColor.fill(0, 0, 0.4f);
+		board.evolvioColor.rect((-1.7f - neuronSize) * scaleUp, -neuronSize * scaleUp, (2.4f + BRAIN_WIDTH + neuronSize * 2) * scaleUp,
 				(BRAIN_HEIGHT + neuronSize * 2) * scaleUp);
 
-		this.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
-		this.evolvioColor.strokeWeight(2);
-		this.evolvioColor.textFont(font, 0.58f * scaleUp);
-		this.evolvioColor.fill(0, 0, 1);
+		board.evolvioColor.ellipseMode(EvolvioColor.RADIUS);
+		board.evolvioColor.strokeWeight(2);
+		board.evolvioColor.textFont(font, 0.58f * scaleUp);
+		board.evolvioColor.fill(0, 0, 1);
 		for (int y = 0; y < BRAIN_HEIGHT; y++) {
-			this.evolvioColor.textAlign(EvolvioColor.RIGHT);
-			this.evolvioColor.text(inputLabels[y], (-neuronSize - 0.1f) * scaleUp, (y + (neuronSize * 0.6f)) * scaleUp);
-			this.evolvioColor.textAlign(EvolvioColor.LEFT);
-			this.evolvioColor.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f) * scaleUp,
+			board.evolvioColor.textAlign(EvolvioColor.RIGHT);
+			board.evolvioColor.text(inputLabels[y], (-neuronSize - 0.1f) * scaleUp, (y + (neuronSize * 0.6f)) * scaleUp);
+			board.evolvioColor.textAlign(EvolvioColor.LEFT);
+			board.evolvioColor.text(outputLabels[y], (BRAIN_WIDTH - 1 + neuronSize + 0.1f) * scaleUp,
 					(y + (neuronSize * 0.6f)) * scaleUp);
 		}
-		this.evolvioColor.textAlign(EvolvioColor.CENTER);
+		board.evolvioColor.textAlign(EvolvioColor.CENTER);
 		for (int x = 0; x < BRAIN_WIDTH; x++) {
 			for (int y = 0; y < BRAIN_HEIGHT; y++) {
-				this.evolvioColor.noStroke();
+				board.evolvioColor.noStroke();
 				double val = neurons[x][y];
-				this.evolvioColor.fill(neuronFillColor(val));
-				this.evolvioColor.ellipse(x * scaleUp, y * scaleUp, neuronSize * scaleUp, neuronSize * scaleUp);
-				this.evolvioColor.fill(neuronTextColor(val));
-				this.evolvioColor.text(EvolvioColor.nf((float) val, 0, 1), x * scaleUp, (y + (neuronSize * 0.6f)) * scaleUp);
+				board.evolvioColor.fill(neuronFillColor(val));
+				board.evolvioColor.ellipse(x * scaleUp, y * scaleUp, neuronSize * scaleUp, neuronSize * scaleUp);
+				board.evolvioColor.fill(neuronTextColor(val));
+				board.evolvioColor.text(EvolvioColor.nf((float) val, 0, 1), x * scaleUp, (y + (neuronSize * 0.6f)) * scaleUp);
 			}
 		}
 		if (mX >= 0 && mX < BRAIN_WIDTH && mY >= 0 && mY < BRAIN_HEIGHT) {
@@ -176,9 +176,9 @@ class Brain implements java.io.Serializable{
 	}
 
 	private void drawAxon(int x1, int y1, int x2, int y2, float scaleUp) {
-		this.evolvioColor.stroke(neuronFillColor(axons[x1][y1][y2].weight * neurons[x1][y1]));
+		board.evolvioColor.stroke(neuronFillColor(axons[x1][y1][y2].weight * neurons[x1][y1]));
 
-		this.evolvioColor.line(x1 * scaleUp, y1 * scaleUp, x2 * scaleUp, y2 * scaleUp);
+		board.evolvioColor.line(x1 * scaleUp, y1 * scaleUp, x2 * scaleUp, y2 * scaleUp);
 	}
 
 	private double sigmoid(double input) {
@@ -187,17 +187,17 @@ class Brain implements java.io.Serializable{
 
 	private int neuronFillColor(double d) {
 		if (d >= 0) {
-			return this.evolvioColor.color(0, 0, 1, (float) (d));
+			return board.evolvioColor.color(0, 0, 1, (float) (d));
 		} else {
-			return this.evolvioColor.color(0, 0, 0, (float) (-d));
+			return board.evolvioColor.color(0, 0, 0, (float) (-d));
 		}
 	}
 
 	private int neuronTextColor(double d) {
 		if (d >= 0) {
-			return this.evolvioColor.color(0, 0, 0);
+			return board.evolvioColor.color(0, 0, 0);
 		} else {
-			return this.evolvioColor.color(0, 0, 1);
+			return board.evolvioColor.color(0, 0, 1);
 		}
 	}
 }

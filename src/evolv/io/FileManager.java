@@ -24,15 +24,15 @@ public class FileManager implements java.io.Serializable {
 	double textSaveInterval = 32;
 	String folder;
 	String[] modes = { "manualImgs", "autoImgs", "manualTexts", "autoTexts" };
+	boolean[] isFileSavePrepared = {false, true, false, true}; // Don't let manualImgs and manualTexts save automatically
 	
 	public FileManager(EvolvioColor evolvioColor, String initialFileName){
 		this.evolvioColor = evolvioColor;
 		folder = initialFileName;
-		fileSaveCounts = new int[4];
-		fileSaveTimes = new double[4];
-		for (int i = 0; i < 4; i++) {
+		fileSaveCounts = new int[modes.length];
+		fileSaveTimes = new double[modes.length];
+		for (int i = 0; i < modes.length; i++) {
 			fileSaveCounts[i] = 0;
-			fileSaveTimes[i] = -999;
 		}
 	}
 	
@@ -75,14 +75,15 @@ public class FileManager implements java.io.Serializable {
 	}
 	
 	void prepareForFileSave(int type) {
-		fileSaveTimes[type] = -999999;
+		isFileSavePrepared[type] = true;
 	}
 	
 	// Save entire board or image of frame
 	void fileSave(Board evoBoard) {		
 		for (int i = 0; i < 4; i++) {
-			if (fileSaveTimes[i] < -99999) {
+			if (isFileSavePrepared[i]) {
 				fileSaveTimes[i] = year;
+				isFileSavePrepared[i] = false;
 				if (i < 2) {
 					evoBoard.evolvioColor.saveFrame(getNextFileName(i));
 				} else {

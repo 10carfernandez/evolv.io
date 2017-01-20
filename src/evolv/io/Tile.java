@@ -8,7 +8,6 @@ class Tile implements java.io.Serializable {
 	/**
 	 * 
 	 */
-	public EvolvioColor evolvioColor;
 	public final int barrenColor;
 	public final int fertileColor;
 	public final int blackColor;
@@ -27,18 +26,17 @@ class Tile implements java.io.Serializable {
 
 	Board board;
 
-	public Tile(EvolvioColor evolvioColor, int x, int y, double f, float type, Board b) {
-		barrenColor = evolvioColor.color(0, 0, 1);
-		fertileColor = evolvioColor.color(0, 0, 0.2f);
-		blackColor = evolvioColor.color(0, 1, 0);
-		waterColor = evolvioColor.color(0, 0, 0);
-		this.evolvioColor = evolvioColor;
+	public Tile(int x, int y, double f, float type, Board b) {
+		board = b;
+		barrenColor = board.evolvioColor.color(0, 0, 1);
+		fertileColor = board.evolvioColor.color(0, 0, 0.2f);
+		blackColor = board.evolvioColor.color(0, 1, 0);
+		waterColor = board.evolvioColor.color(0, 0, 0);
 		posX = x;
 		posY = y;
 		fertility = Math.max(0, f);
 		foodLevel = fertility;
 		climateType = foodType = type;
-		board = b;
 	}
 
 	public double getFertility() {
@@ -58,24 +56,24 @@ class Tile implements java.io.Serializable {
 	}
 
 	public void drawTile(float scaleUp, float camZoom, boolean showEnergy) {
-		this.evolvioColor.stroke(0, 0, 0, 1);
-		this.evolvioColor.strokeWeight(2);
+		this.board.evolvioColor.stroke(0, 0, 0, 1);
+		this.board.evolvioColor.strokeWeight(2);
 		int landColor = getColor();
-		this.evolvioColor.fill(landColor);
-		this.evolvioColor.rect(posX * scaleUp, posY * scaleUp, scaleUp, scaleUp);
+		this.board.evolvioColor.fill(landColor);
+		this.board.evolvioColor.rect(posX * scaleUp, posY * scaleUp, scaleUp, scaleUp);
 		if (showEnergy && camZoom > Board.MAX_DETAILED_ZOOM) {
-			if (this.evolvioColor.brightness(landColor) >= 0.7f) {
-				this.evolvioColor.fill(0, 0, 0, 1);
+			if (this.board.evolvioColor.brightness(landColor) >= 0.7f) {
+				this.board.evolvioColor.fill(0, 0, 0, 1);
 			} else {
-				this.evolvioColor.fill(0, 0, 1, 1);
+				this.board.evolvioColor.fill(0, 0, 1, 1);
 			}
-			this.evolvioColor.textAlign(EvolvioColor.CENTER);
-			this.evolvioColor.textFont(this.evolvioColor.font, 21);
-			this.evolvioColor.text(EvolvioColor.nf((float) (100 * foodLevel), 0, 2) + " yums", (posX + 0.5f) * scaleUp,
+			this.board.evolvioColor.textAlign(EvolvioColor.CENTER);
+			this.board.evolvioColor.textFont(this.board.evolvioColor.font, 21);
+			this.board.evolvioColor.text(EvolvioColor.nf((float) (100 * foodLevel), 0, 2) + " yums", (posX + 0.5f) * scaleUp,
 					(posY + 0.3f) * scaleUp);
-			this.evolvioColor.text("Clim: " + EvolvioColor.nf((float) (climateType), 0, 2), (posX + 0.5f) * scaleUp,
+			this.board.evolvioColor.text("Clim: " + EvolvioColor.nf((float) (climateType), 0, 2), (posX + 0.5f) * scaleUp,
 					(posY + 0.6f) * scaleUp);
-			this.evolvioColor.text("Food: " + EvolvioColor.nf((float) (foodType), 0, 2), (posX + 0.5f) * scaleUp,
+			this.board.evolvioColor.text("Food: " + EvolvioColor.nf((float) (foodType), 0, 2), (posX + 0.5f) * scaleUp,
 					(posY + 0.9f) * scaleUp);
 		}
 	}
@@ -134,22 +132,22 @@ class Tile implements java.io.Serializable {
 
 	public int getColor() {
 		iterate();
-		int foodColor = this.evolvioColor.color((float) (foodType), 1, 1);
+		int foodColor = this.board.evolvioColor.color((float) (foodType), 1, 1);
 		if (fertility > 1) {
 			return waterColor;
 		} else if (foodLevel < maxGrowthLevel) {
 			return interColorFixedHue(interColor(barrenColor, fertileColor, fertility), foodColor,
-					foodLevel / maxGrowthLevel, this.evolvioColor.hue(foodColor));
+					foodLevel / maxGrowthLevel, this.board.evolvioColor.hue(foodColor));
 		} else {
 			return interColorFixedHue(foodColor, blackColor, 1.0f - maxGrowthLevel / foodLevel,
-					this.evolvioColor.hue(foodColor));
+					this.board.evolvioColor.hue(foodColor));
 		}
 	}
 
 	public int interColor(int a, int b, double x) {
-		double hue = inter(this.evolvioColor.hue(a), this.evolvioColor.hue(b), x);
-		double sat = inter(this.evolvioColor.saturation(a), this.evolvioColor.saturation(b), x);
-		double bri = inter(this.evolvioColor.brightness(a), this.evolvioColor.brightness(b), x); // I
+		double hue = inter(this.board.evolvioColor.hue(a), this.board.evolvioColor.hue(b), x);
+		double sat = inter(this.board.evolvioColor.saturation(a), this.board.evolvioColor.saturation(b), x);
+		double bri = inter(this.board.evolvioColor.brightness(a), this.board.evolvioColor.brightness(b), x); // I
 																									// know
 																									// it's
 		// dumb to
@@ -158,18 +156,18 @@ class Tile implements java.io.Serializable {
 		// with HSL
 		// but oh
 		// well
-		return this.evolvioColor.color((float) (hue), (float) (sat), (float) (bri));
+		return this.board.evolvioColor.color((float) (hue), (float) (sat), (float) (bri));
 	}
 
 	public int interColorFixedHue(int a, int b, double x, double hue) {
-		double satB = this.evolvioColor.saturation(b);
-		if (this.evolvioColor.brightness(b) == 0) { // I want black to be
+		double satB = this.board.evolvioColor.saturation(b);
+		if (this.board.evolvioColor.brightness(b) == 0) { // I want black to be
 													// calculated as 100%
 			// saturation
 			satB = 1;
 		}
-		double sat = inter(this.evolvioColor.saturation(a), satB, x);
-		double bri = inter(this.evolvioColor.brightness(a), this.evolvioColor.brightness(b), x); // I
+		double sat = inter(this.board.evolvioColor.saturation(a), satB, x);
+		double bri = inter(this.board.evolvioColor.brightness(a), this.board.evolvioColor.brightness(b), x); // I
 																									// know
 																									// it's
 		// dumb to
@@ -178,7 +176,7 @@ class Tile implements java.io.Serializable {
 		// with HSL
 		// but oh
 		// well
-		return this.evolvioColor.color((float) (hue), (float) (sat), (float) (bri));
+		return this.board.evolvioColor.color((float) (hue), (float) (sat), (float) (bri));
 	}
 
 	public double inter(double a, double b, double x) {

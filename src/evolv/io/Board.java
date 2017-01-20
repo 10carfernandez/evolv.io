@@ -91,7 +91,7 @@ class Board implements java.io.Serializable {
 				float climateType = this.evolvioColor.noise(x * stepSize * 0.2f + 10000, y * stepSize * 0.2f + 10000)
 						* 1.63f - 0.4f;
 				climateType = EvolvioColor.min(EvolvioColor.max(climateType, 0), 0.8f);
-				tiles[x][y] = new Tile(this.evolvioColor, x, y, fertility, climateType, this);
+				tiles[x][y] = new Tile(x, y, fertility, climateType, this);
 			}
 		}
 		MIN_TEMPERATURE = min;
@@ -107,7 +107,7 @@ class Board implements java.io.Serializable {
 		ROCKS_TO_ADD = rta;
 		rocks = new ArrayList<SoftBody>(0);
 		for (int i = 0; i < ROCKS_TO_ADD; i++) {
-			rocks.add(new SoftBody(this.evolvioColor, this.evolvioColor.random(0, boardWidth),
+			rocks.add(new SoftBody(this.evolvioColor.random(0, boardWidth),
 					this.evolvioColor.random(0, boardHeight), 0, 0, getRandomSize(), ROCK_DENSITY,
 					this.evolvioColor.hue(ROCK_COLOR), this.evolvioColor.saturation(ROCK_COLOR),
 					this.evolvioColor.brightness(ROCK_COLOR), this));
@@ -585,7 +585,7 @@ class Board implements java.io.Serializable {
 				c.addEnergy(c.SAFE_SIZE);
 				c.reproduce(c.SAFE_SIZE, timeStep);
 			} else {
-				creatures.add(new Creature(this.evolvioColor, this));
+				creatures.add(new Creature(this));
 			}
 		}
 	}
