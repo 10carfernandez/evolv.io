@@ -94,10 +94,7 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		this.SEED = evoBoard.evolvioColor.SEED;
 		this.INITIAL_FILE_NAME = evoBoard.fileManager.folder;
 
-		// Since PApplet is not serializable, use current evolvioColor 
-		// to avoid null pointer errors when using PApplet methods
-		// Alternatively, we can use yet another library that will 
-		// make PApplet serializable.
+		// Since PApplet is not serializable, use this evolvioColor 
 		evoBoard.evolvioColor = this;
 	}
 
