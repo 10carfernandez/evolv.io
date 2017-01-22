@@ -98,13 +98,6 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		// to avoid null pointer errors when using PApplet methods
 		// Alternatively, we can use yet another library that will 
 		// make PApplet serializable.
-		int temp[] = new int[evoBoard.fileManager.fileSaveCounts.length];
-		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
-			temp[i] = evoBoard.fileManager.fileSaveCounts[i];
-		}
-		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
-			evoBoard.fileManager.fileSaveCounts[i] = temp[i];
-		}
 		evoBoard.evolvioColor = this;
 	}
 
