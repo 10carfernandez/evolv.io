@@ -92,6 +92,7 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 
 		// Update properties to match ones from the loaded object
 		this.SEED = evoBoard.evolvioColor.SEED;
+		this.INITIAL_FILE_NAME = evoBoard.fileManager.folder;
 
 		// Since PApplet is not serializable, use current evolvioColor 
 		// to avoid null pointer errors when using PApplet methods
@@ -101,7 +102,6 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
 			temp[i] = evoBoard.fileManager.fileSaveCounts[i];
 		}
-		evoBoard.fileManager = new FileManager(this, INITIAL_FILE_NAME);
 		for (int i = 0; i < evoBoard.fileManager.fileSaveCounts.length; i++){
 			evoBoard.fileManager.fileSaveCounts[i] = temp[i];
 		}
@@ -113,7 +113,6 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		surface.setResizable(true);
 		colorMode(HSB, 1.0f);
 		font = loadFont("Jygquip1-48.vlw");
-		
 		if (loadFile) {
 			setParameters();
 			loadFile = false;

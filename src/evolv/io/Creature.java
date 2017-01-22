@@ -67,8 +67,8 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	NameGenerator nameGenerator;
 
 	public Creature(Board tb) {
-		this(tb.evolvioColor.random(0, tb.boardWidth),
-				tb.evolvioColor.random(0, tb.boardHeight), 0, 0,
+		this(tb.evolvioColor.random(tb.evolvioColor.cameraX - tb.boardWidth/tb.evolvioColor.zoom, tb.evolvioColor.cameraX + tb.boardWidth/tb.evolvioColor.zoom),
+				tb.evolvioColor.random(tb.evolvioColor.cameraY - tb.boardHeight/tb.evolvioColor.zoom, tb.evolvioColor.cameraY + tb.boardHeight/tb.evolvioColor.zoom), 0, 0,
 				tb.evolvioColor.random(tb.MIN_CREATURE_ENERGY, tb.MAX_CREATURE_ENERGY), 1,
 				tb.evolvioColor.random(0, 1), 1, 1, tb,
 				tb.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
@@ -137,6 +137,10 @@ public class Creature extends SoftBody implements java.io.Serializable{
 				reproduce(SAFE_SIZE, timeStep);
 			}
 			mouthHue = Math.abs(output[10]) % 1.0f;
+			visionAngles[1] = -brain.sigmoid(output[6]);
+			visionAngles[2] = brain.sigmoid(output[6]);
+			visionDistances[1] = brain.sigmoid(output[8]);
+			visionDistances[2] = brain.sigmoid(output[8]);
 		}
 	}
 

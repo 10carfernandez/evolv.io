@@ -58,8 +58,8 @@ class Brain implements java.io.Serializable{
 		// initialize labels
 		String[] baseInput = { "0Hue", "0Sat", "0Bri", "1Hue", "1Sat", "1Bri", "2Hue", "2Sat", "2Bri", "Size",
 				"MHue" };
-		String[] baseOutput = { "BHue", "Accel.", "Turn", "Eat", "Fight", "Birth", "How funny?", "How popular?",
-				"How generous?", "How smart?", "MHue" };
+		String[] baseOutput = { "BHue", "Accel.", "Turn", "Eat", "Fight", "Birth", "Eye Angle", "How popular?",
+				"Eye Dist.", "How smart?", "MHue" };
 		for (int i = 0; i < 11; i++) {
 			inputLabels[i] = baseInput[i];
 			outputLabels[i] = baseOutput[i];
@@ -181,7 +181,7 @@ class Brain implements java.io.Serializable{
 		board.evolvioColor.line(x1 * scaleUp, y1 * scaleUp, x2 * scaleUp, y2 * scaleUp);
 	}
 
-	private double sigmoid(double input) {
+	public double sigmoid(double input) {
 		return 1.0f / (1.0f + Math.pow(2.71828182846f, -input));
 	}
 
