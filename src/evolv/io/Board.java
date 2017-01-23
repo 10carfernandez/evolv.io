@@ -121,7 +121,7 @@ class Board implements java.io.Serializable {
 		}
 		userControl = true;
 
-		fileManager = new FileManager(this.evolvioColor, INITIAL_FILE_NAME);
+		fileManager = new FileManager(this.evolvioColor, this.evolvioColor.saveDir);
 		fileManager.year = this.year;
 		timeStep = ts;
 		populationHistory = new int[POPULATION_HISTORY_LENGTH];
@@ -275,22 +275,22 @@ class Board implements java.io.Serializable {
 							"-" + creatureMinimumIncrement + "                    +" + creatureMinimumIncrement,
 							x + 110, y + 37);
 				} else if (i == 5) {
-					this.evolvioColor.text(fileManager.getNextFileName(0), x + 110, y + 37);
+					this.evolvioColor.text(fileManager.getNextFileName(0, false), x + 110, y + 37);
 					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[0]) * FLASH_SPEED);
 					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
 					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 8) {
-					this.evolvioColor.text(fileManager.getNextFileName(1), x + 110, y + 37);
+					this.evolvioColor.text(fileManager.getNextFileName(1, false), x + 110, y + 37);
 					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[1]) * FLASH_SPEED);
 					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
 					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 4) {
-					this.evolvioColor.text(fileManager.getNextFileName(2), x + 110, y + 37);
+					this.evolvioColor.text(fileManager.getNextFileName(2, false), x + 110, y + 37);
 					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[2]) * FLASH_SPEED);
 					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
 					this.evolvioColor.rect(x, y, 220, 40);
 				} else if (i == 7) {
-					this.evolvioColor.text(fileManager.getNextFileName(3), x + 110, y + 37);
+					this.evolvioColor.text(fileManager.getNextFileName(3, false), x + 110, y + 37);
 					flashAlpha = 1.0f * Math.pow(0.5f, (year - fileManager.fileSaveTimes[3]) * FLASH_SPEED);
 					this.evolvioColor.fill(0, 0, 1, (float) flashAlpha);
 					this.evolvioColor.rect(x, y, 220, 40);

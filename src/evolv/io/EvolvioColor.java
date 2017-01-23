@@ -39,11 +39,13 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 	float prevMouseX;
 	float prevMouseY;
 	boolean draggedFar = false;
-	String INITIAL_FILE_NAME = "PIC";
 
 	// Saving and loading
 	boolean loadFile = false;
-	String fullPath;
+	final String SAVE_DIRECTORY = "SAVES";	// File in which all simulation sessions should be saved
+	String defaultDir = "default";
+	String saveDir;
+	String savePath;
 
 	public static void main(String[] passedArgs) {
 		String[] appletArgs = new String[] { "evolv.io.EvolvioColor" };
@@ -70,32 +72,46 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 
 	public void fileSelected(File selection) {
 		if (selection != null){
-			fullPath = selection.getAbsolutePath();
+			saveDir = selection.getAbsolutePath();
 			loadFile = true;
 		}
 	}
 
 	public void folderSelected(File selection) {
 		if (selection != null){
-			INITIAL_FILE_NAME = selection.getName();
-			evoBoard.fileManager.setNewSaveDirectory(selection.getAbsolutePath());
+			saveDir = selection.getName();
+			setSaveDirectory();
+			savePath += "/" + saveDir;
+			evoBoard.fileManager.setSaveDirectory(selection.getAbsolutePath());
 		}
 	}
 
 	public void setParameters(){
-		FileManager fileManager= new FileManager(this, INITIAL_FILE_NAME);
+		FileManager fileManager= new FileManager(this, SAVE_DIRECTORY);
 
 		// Open file and load object
-		if (fileManager.fileLoad(fullPath) != null){
-			evoBoard = fileManager.fileLoad(fullPath);
+		if (fileManager.fileLoad(saveDir) != null){
+			evoBoard = fileManager.fileLoad(saveDir);
 		}
 
 		// Update properties to match ones from the loaded object
 		this.SEED = evoBoard.evolvioColor.SEED;
-		this.INITIAL_FILE_NAME = evoBoard.fileManager.folder;
+		this.savePath = evoBoard.fileManager.savePath;
 
 		// Since PApplet is not serializable, use this evolvioColor 
 		evoBoard.evolvioColor = this;
+	}
+
+	public void setSaveDirectory(){
+		File folder = new File(SAVE_DIRECTORY);
+		if (!folder.exists()){
+			try{
+				folder.mkdir();
+			} catch(Exception e) {
+			    e.printStackTrace();
+			}
+		}
+		savePath = folder.getAbsolutePath();
 	}
 
 	@Override
@@ -103,14 +119,17 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 		surface.setResizable(true);
 		colorMode(HSB, 1.0f);
 		font = loadFont("Jygquip1-48.vlw");
+		setSaveDirectory();
 		if (loadFile) {
 			setParameters();
 			loadFile = false;
 		} else {
 			evoBoard = new Board(this, BOARD_WIDTH, BOARD_HEIGHT, NOISE_STEP_SIZE, MIN_TEMPERATURE, MAX_TEMPERATURE, ROCKS_TO_ADD,
-					CREATURE_MINIMUM, SEED, INITIAL_FILE_NAME, TIME_STEP);
-			evoBoard.fileManager.setNewSaveDirectory(INITIAL_FILE_NAME);
+					CREATURE_MINIMUM, SEED, SAVE_DIRECTORY, TIME_STEP);
+			saveDir = defaultDir;
 		}
+		savePath += "/" + saveDir;
+		evoBoard.fileManager.setSaveDirectory(savePath);
 		resetZoom();
 	}
 
@@ -280,7 +299,7 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 
 					case (2):
 						// Code for the ninth button
-						File folder = new File(INITIAL_FILE_NAME);
+						File folder = new File(SAVE_DIRECTORY);
 						selectFolder("Select a new save directory:", "folderSelected", folder);
 						break;
 					}
