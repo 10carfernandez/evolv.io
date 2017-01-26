@@ -23,7 +23,7 @@ public class FileManager implements java.io.Serializable {
 	double imageSaveInterval = 32;
 	double textSaveInterval = 32;
 	String savePath;
-	String[] modes = { "manualImgs", "autoImgs", "manualTexts", "autoTexts" };
+	String[] modes = { "manualImgs", "autoImgs", "manual", "auto" };
 	boolean[] isFileSavePrepared = {false, true, false, true}; // Don't let manualImgs and manualTexts save automatically
 	
 	public FileManager(EvolvioColor evolvioColor, String initialFileName){
@@ -52,7 +52,7 @@ public class FileManager implements java.io.Serializable {
 	public String getNextFileName(int type, boolean fullPath) {
 		String ending = ".png";
 		if (type >= 2) {
-			ending = ".txt";
+			ending = ".evolve";
 		}
 		if(fullPath){
 			return savePath + "/" + modes[type] + "/" + EvolvioColor.nf(fileSaveCounts[type], 5) + ending;

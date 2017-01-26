@@ -252,10 +252,10 @@ class Board implements java.io.Serializable {
 					"Load File",
 					"Change Save Folder",
 					"Maintain pop. at " + creatureMinimum,
-					"Text file now",
+					"Save file now",
 					"Screenshot Now",
 					"-    Play Speed (" + playSpeed + "x)    +",
-					"-    Text every " + EvolvioColor.nf((float) fileManager.textSaveInterval, 0, 2) + " years    +",
+					"-    Save every " + EvolvioColor.nf((float) fileManager.textSaveInterval, 0, 2) + " years    +",
 					"-   Image every " + EvolvioColor.nf((float) fileManager.imageSaveInterval, 0, 2) + " years   +"
 			};
 			if (userControl) {
