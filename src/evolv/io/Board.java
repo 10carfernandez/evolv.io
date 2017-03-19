@@ -65,12 +65,12 @@ class Board implements java.io.Serializable {
 													// details at
 	FileManager fileManager;
 	int buttonColor;
-	public static int columns = 3;
+	public static int columns = 2;
 	final double FLASH_SPEED = 80;
 	boolean userControl;
 
 	final String[] sorts = { "Biggest", "Smallest", "Youngest", "Oldest", "A to Z", "Z to A", "Highest Gen",
-			"Lowest Gen" };
+			"Lowest Gen", "Highest Mutations", "Lowest Mutations" };
 
 	public Board(EvolvioColor evolvioColor, int w, int h, float stepSize, float min, float max, int rta, int cm,
 			int SEED, String INITIAL_FILE_NAME, double ts) {
@@ -119,7 +119,7 @@ class Board implements java.io.Serializable {
 		for (int i = 0; i < LIST_SLOTS; i++) {
 			list[i] = null;
 		}
-		userControl = true;
+		userControl = false;
 
 		fileManager = new FileManager(this.evolvioColor, INITIAL_FILE_NAME);
 		fileManager.year = this.year;
@@ -234,10 +234,12 @@ class Board implements java.io.Serializable {
 			this.evolvioColor.fill(buttonColor);
 			this.evolvioColor.rect(10, 95, 220, 40);
 			this.evolvioColor.rect(240, 95, 220, 40);
+			this.evolvioColor.rect(470, 95, 220, 40);
 			this.evolvioColor.fill(0, 0, 1);
 			this.evolvioColor.textAlign(EvolvioColor.CENTER);
 			this.evolvioColor.text("Reset zoom", 120, 123);
 			this.evolvioColor.text("Sort by: " + sorts[creatureRankMetric], 350, 123);
+			this.evolvioColor.text("Toggle Stats", 580, 123);
 
 			this.evolvioColor.textFont(font, 19);
 			/*
@@ -325,11 +327,14 @@ class Board implements java.io.Serializable {
 			this.evolvioColor.text("B-day: " + toDate(selectedCreature.birthTime), 10, 425);
 			this.evolvioColor.text("(" + toAge(selectedCreature.birthTime) + ")", 10, 450);
 			this.evolvioColor.text("Generation: " + selectedCreature.gen, 10, 475);
-			this.evolvioColor.text("Parents: " + selectedCreature.parents, 10, 500, 210, 255);
+			this.evolvioColor.text("Mutations: " + selectedCreature.mut, 10, 500);
+			this.evolvioColor.text("Parents: " + selectedCreature.parents, 10, 520, 210, 255);
 			this.evolvioColor.text("Hue: " + EvolvioColor.nf((float) (selectedCreature.hue), 0, 2), 10, 550, 210, 255);
 			this.evolvioColor.text("Mouth hue: " + EvolvioColor.nf((float) (selectedCreature.mouthHue), 0, 2), 10, 575,
 					210, 255);
-
+			System.out.println("Axon (min, max) = (" + selectedCreature.brain.smallestWeight() + ","+ selectedCreature.brain.biggestWeight() + ")");
+			System.out.println("Neuron (min, max) = (" + selectedCreature.brain.smallestNeuron() + ","+ selectedCreature.brain.biggestNeuron() + ")");
+			System.out.println();
 			if (userControl) {
 				this.evolvioColor
 						.text("Controls:\nUp/Down: Move\nLeft/Right: Rotate\nSpace: Eat\nF: Fight\nV: Vomit\nU, J: Change color"

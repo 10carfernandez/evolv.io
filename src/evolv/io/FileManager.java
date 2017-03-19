@@ -88,9 +88,11 @@ public class FileManager implements java.io.Serializable {
 					evoBoard.evolvioColor.saveFrame(getNextFileName(i));
 				} else {
 					try{
-						ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(getNextFileName(i)));
+						String nextFileName = getNextFileName(i);
+						ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(nextFileName));
 						out.writeObject(evoBoard);
 						out.close();
+						System.out.println(nextFileName);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

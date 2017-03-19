@@ -12,7 +12,9 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 	 */
 	private static final long serialVersionUID = 120764456258379499L;
 	Board evoBoard;
-	int SEED = parseInt(random(1000000));
+	//int SEED = parseInt(random(1000000));
+	//int SEED = 389633;
+	int SEED = 513248;
 	final float NOISE_STEP_SIZE = 0.1f;
 	final int BOARD_WIDTH = 100;
 	final int BOARD_HEIGHT = 100;
@@ -44,6 +46,9 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 	// Saving and loading
 	boolean loadFile = false;
 	String fullPath;
+	
+	// Display stats
+	public static boolean showStats = true;
 
 	public static void main(String[] passedArgs) {
 		String[] appletArgs = new String[] { "evolv.io.EvolvioColor" };
@@ -110,6 +115,17 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 
 	@Override
 	public void setup() {
+		
+		double maxDiff = 0;
+		
+		for(int i = -600; i < 601; i++){
+			if(Math.abs(Brain.Tanh((double)i/100) - Math.tanh((double)i/100)) > maxDiff){
+				maxDiff = Math.abs(Brain.Tanh((double)i/100) - Math.tanh((double)i/100));
+			}
+		}
+
+		System.out.println(maxDiff);
+		
 		surface.setResizable(true);
 		colorMode(HSB, 1.0f);
 		font = loadFont("Jygquip1-48.vlw");
@@ -186,6 +202,7 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 
 	@Override
 	public void mousePressed() {
+		//System.out.println("(" + mouseX + "," + mouseY + ")");
 		if (mouseX < windowHeight) {
 			dragging = 1;
 		} else {
@@ -203,6 +220,11 @@ public class EvolvioColor extends PApplet implements java.io.Serializable {
 					} else if (mouseButton == RIGHT) {
 						evoBoard.decrementSort();
 					}
+				} else if (mouseX >= windowHeight + 470 && mouseX < windowHeight + 690) {
+					// Toggle stats
+					//boolean temp = showStats;
+					//showStats = !temp;
+					showStats = !showStats;
 				}
 			} else if (mouseY >= 570) {
 				float x = (mouseX - (windowHeight + 10));

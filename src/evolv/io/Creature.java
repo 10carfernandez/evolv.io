@@ -16,7 +16,8 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	double ACCELERATION_ENERGY = 0.18f;
 	double ACCELERATION_BACK_ENERGY = 0.24f;
 	double SWIM_ENERGY = 0.008f;
-	double TURN_ENERGY = 0.06f;
+	//double TURN_ENERGY = 0.06f;
+	double TURN_ENERGY = 1f;
 	double EAT_ENERGY = 0.05f;
 	double EAT_SPEED = 0.5f; // 1 is instant, 0 is nonexistent, 0.001 is
 								// verrry slow.
@@ -39,18 +40,34 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	String name;
 	String parents;
 	int gen;
+	int mut;
 	int id;
+	int numChildren = 0;
+	public static int NUM_CHILDREN_BEFORE_MUTATING = 2;
 
 	// Vision or View or Preference
 	double MAX_VISION_DISTANCE = 10;
 	final double FOOD_SENSITIVITY = 0.3f;
-	double[] visionAngles = { 0, -0.4f, 0.4f };
-	double[] visionDistances = { 0, 0.7f, 0.7f };
+	public static int EYE_COUNT = 2;
+	double[] visionAngles = new double[EYE_COUNT];
+	double[] visionDistances = new double[EYE_COUNT];
 	// double visionAngle;
 	// double visionDistance;
-	double[] visionOccludedX = new double[visionAngles.length];
-	double[] visionOccludedY = new double[visionAngles.length];
-	double visionResults[] = new double[9];
+	double[] visionOccludedX = new double[EYE_COUNT];
+	double[] visionOccludedY = new double[EYE_COUNT];
+	double visionResults[] = new double[EYE_COUNT*3];
+	boolean visionDistanceIsBrainControlled = true;
+	boolean visionAngleIsBrainControlled = false;
+	//double[] customAngles = {0, -0.2, 0.2, -0.3, 0.3, -0.4, 0.4};
+	//double[] customDistances = {0, 0.5, 0.5, 0.6, 0.6, 0.5, 0.5};
+	
+	/*
+	double[] customAngles = { 0, 0f, 0f };
+	double[] customDistances = { 0, 0.3f, 0.7f };
+	*/
+	
+	double[] customAngles = { 0, 0f };
+	double[] customDistances = { 0, 0.4f };
 
 	Brain brain;
 	final float BRIGHTNESS_THRESHOLD = 0.7f;
@@ -62,7 +79,8 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	double vr = 0;
 	double rotation = 0;
 	final double SAFE_SIZE = 1.25f;
-	final double MATURE_AGE = 0.01f;
+	//final double MATURE_AGE = 0.01f;
+	final double MATURE_AGE = 0f;
 
 	NameGenerator nameGenerator;
 
@@ -72,12 +90,12 @@ public class Creature extends SoftBody implements java.io.Serializable{
 				tb.evolvioColor.random(tb.MIN_CREATURE_ENERGY, tb.MAX_CREATURE_ENERGY), 1,
 				tb.evolvioColor.random(0, 1), 1, 1, tb,
 				tb.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, "", "[PRIMORDIAL]", true, null, 1,
-				tb.evolvioColor.random(0, 1));
+				tb.evolvioColor.random(0, 1), 0);
 	}
 
 	public Creature(double tpx, double tpy, double tvx, double tvy, double tenergy,
 			double tdensity, double thue, double tsaturation, double tbrightness, Board tb, double rot,
-			double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue) {
+			double tvr, String tname, String tparents, boolean mutateName, Brain brain, int tgen, double tmouthHue, int tmut) {
 
 		super(tpx, tpy, tvx, tvy, tenergy, tdensity, thue, tsaturation, tbrightness, tb);
 		nameGenerator = new NameGenerator(tb.evolvioColor);
@@ -106,10 +124,11 @@ public class Creature extends SoftBody implements java.io.Serializable{
 		// visionDistance = 0;
 		// visionEndX = getVisionStartX();
 		// visionEndY = getVisionStartY();
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < EYE_COUNT*3; i++) {
 			visionResults[i] = 0;
 		}
 		gen = tgen;
+		mut = tmut;
 		mouthHue = tmouthHue;
 	}
 
@@ -118,14 +137,15 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	}
 
 	public void useBrain(double timeStep, boolean useOutput) {
-		double inputs[] = new double[11];
-		for (int i = 0; i < 9; i++) {
+		double inputs[] = new double[brain.BASE_HEIGHT];
+		for (int i = 0; i < EYE_COUNT*3; i++) {
 			inputs[i] = visionResults[i];
 		}
-		inputs[9] = energy;
-		inputs[10] = mouthHue;
+		
+		inputs[EYE_COUNT*3] = energy;
+		inputs[EYE_COUNT*3 + 1] = mouthHue;
+		//inputs[EYE_COUNT*3 + 2] = board.year - birthTime;
 		brain.input(inputs);
-
 		if (useOutput) {
 			double[] output = brain.outputs();
 			hue = Math.abs(output[0]) % 1.0f;
@@ -136,11 +156,76 @@ public class Creature extends SoftBody implements java.io.Serializable{
 			if (output[5] > 0 && board.year - birthTime >= MATURE_AGE && energy > SAFE_SIZE) {
 				reproduce(SAFE_SIZE, timeStep);
 			}
-			mouthHue = Math.abs(output[10]) % 1.0f;
-			visionAngles[1] = -brain.sigmoid(output[6]);
-			visionAngles[2] = brain.sigmoid(output[6]);
-			visionDistances[1] = brain.sigmoid(output[8]);
-			visionDistances[2] = brain.sigmoid(output[8]);
+			mouthHue = Math.abs(output[6]) % 1.0f;
+			
+			if(visionDistanceIsBrainControlled && visionAngleIsBrainControlled){
+				for(int i = 2; i < EYE_COUNT*2; i+=2){
+					//visionAngles[i/2] = Brain.activationFunction(output[5+i]*2*Math.PI);
+					//visionDistances[i/2] = Brain.activationFunction(output[6+i]);
+					visionDistances[i/2] = output[6+i];
+					visionAngles[i/2] = output[5+i];
+				}
+			}
+			else if(visionDistanceIsBrainControlled){
+				for(int i = 2; i < EYE_COUNT*2; i+=2){
+					visionDistances[i/2] = output[6+i];
+				}
+				visionAngles = customAngles;
+			}
+			else if(visionAngleIsBrainControlled){
+				for(int i = 2; i < EYE_COUNT*2; i+=2){
+					visionAngles[i/2] = output[5+i];
+				}
+				visionDistances = customDistances;
+			}
+			else{
+
+				EYE_COUNT = customAngles.length;
+				visionAngles = customAngles;
+				visionDistances = customDistances;
+			}
+			
+			/*
+			visionAngles[1] = Brain.activationFunction(output[6]);
+			visionDistances[1] = Brain.activationFunction(output[7]);
+			visionAngles[2] = Brain.activationFunction(output[8]);
+			visionDistances[2] = Brain.activationFunction(output[9]);
+			visionAngles[3] = Brain.activationFunction(output[11]);
+			visionDistances[3] = Brain.activationFunction(output[12]);
+			visionAngles[4] = Brain.activationFunction(output[13]);
+			visionDistances[4] = Brain.activationFunction(output[14]);
+			*/
+			
+			/*
+			visionAngles[1] = output[6];
+			visionDistances[1] = output[7];
+			visionAngles[2] = output[8];
+			visionDistances[2] = output[9];
+			visionAngles[3] = output[11];
+			visionDistances[3] = output[12];
+			visionAngles[4] = output[13];
+			visionDistances[4] = output[14];
+			*/
+			/*
+			visionAngles[1] = Math.sin(output[6]);
+			visionDistances[1] = Math.sin(output[7]);
+			visionAngles[2] = Math.sin(output[8]);
+			visionDistances[2] = Math.sin(output[9]);
+			visionAngles[3] = Math.sin(output[11]);
+			visionDistances[3] = Math.sin(output[12]);
+			visionAngles[4] = Math.sin(output[13]);
+			visionDistances[4] = Math.sin(output[14]);
+			*/
+			/*
+			visionAngles[1] = Math.sin(output[6]/50);
+			visionDistances[1] = Math.sin(output[7]/50);
+			visionAngles[2] = Math.sin(output[8]/50);
+			visionDistances[2] = Math.sin(output[9]/50);
+			visionAngles[3] = Math.sin(output[11]/50);
+			visionDistances[3] = Math.sin(output[12]/50);
+			visionAngles[4] = Math.sin(output[13]/50);
+			visionDistances[4] = Math.sin(output[14]/50);
+			*/
 		}
 	}
 
@@ -219,6 +304,7 @@ public class Creature extends SoftBody implements java.io.Serializable{
 		board.evolvioColor.rotate((float) rotation);
 		board.evolvioColor.strokeWeight((float) (board.CREATURE_STROKE_WEIGHT / radius));
 		board.evolvioColor.stroke(0, 0, 0);
+		//System.out.println(this.name);
 		board.evolvioColor.fill((float) mouthHue, 1.0f, 1.0f);
 		board.evolvioColor.ellipse(0.6f * scaleUp, 0, 0.37f * scaleUp, 0.37f * scaleUp);
 		board.evolvioColor.popMatrix();
@@ -325,9 +411,15 @@ public class Creature extends SoftBody implements java.io.Serializable{
 
 	public void dropEnergy(double energyLost) {
 		if (energyLost > 0) {
-			energyLost = Math.min(energyLost, energy);
-			energy -= energyLost;
-			getRandomCoveredTile().addFood(energyLost, hue, true);
+			if (Double.isNaN(energyLost)){
+				System.out.println("Name: " + name);
+				System.out.println("Energy: " + energy);
+			}
+			else{
+				energyLost = Math.min(energyLost, energy);
+				energy -= energyLost;
+				getRandomCoveredTile().addFood(energyLost, hue, true);
+			}
 		}
 	}
 
@@ -336,6 +428,30 @@ public class Creature extends SoftBody implements java.io.Serializable{
 			double visionStartX = px;
 			double visionStartY = py;
 			double visionTotalAngle = rotation + visionAngles[k];
+			
+
+			double dist = visionDistances[k];
+			double loseScale = 1000;
+			if(visionDistanceIsBrainControlled){
+				if (dist > 1){
+					loseEnergy(dist/loseScale);
+				} 
+				else if (dist < -1) {
+					loseEnergy(-dist/loseScale);
+				}
+			}
+
+			
+			double ang = visionAngles[k];
+			if(visionAngleIsBrainControlled){
+				if (ang > 1){
+					loseEnergy(ang/loseScale);
+				} 
+				else if (ang < -1) {
+					loseEnergy(-ang/loseScale);
+				}
+			}
+
 
 			double endX = getVisionEndX(k);
 			double endY = getVisionEndY(k);
@@ -422,7 +538,7 @@ public class Creature extends SoftBody implements java.io.Serializable{
 
 	public void returnToEarth() {
 		int pieces = 20;
-		double radius = (float) getRadius();
+		//double radius = (float) getRadius();
 		for (int i = 0; i < pieces; i++) {
 			getRandomCoveredTile().addFood(energy / pieces, hue, true);
 		}
@@ -437,17 +553,24 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	}
 
 	public void reproduce(double babySize, double timeStep) {
+		// Probability of there being a mutation
+		boolean mutateBrain = false;
+		if(numChildren >= NUM_CHILDREN_BEFORE_MUTATING){
+			mutateBrain = Math.random() <= 0.5;
+		}
+
 		if (colliders == null) {
 			collide(timeStep);
 		}
 		int highestGen = 0;
+		int highestMut = 0;
 		if (babySize >= 0) {
 			ArrayList<Creature> parents = new ArrayList<Creature>(0);
 			parents.add(this);
 			double availableEnergy = getBabyEnergy();
 			for (int i = 0; i < colliders.size(); i++) {
 				SoftBody possibleParent = colliders.get(i);
-				if (possibleParent.isCreature && ((Creature) possibleParent).brain.outputs()[9] > -1) { // Must
+				if (possibleParent.isCreature && ((Creature) possibleParent).brain.outputs()[EYE_COUNT*3] > -1) { // Must
 																										// be
 																										// a
 																										// WILLING
@@ -467,13 +590,19 @@ public class Creature extends SoftBody implements java.io.Serializable{
 			}
 			if (availableEnergy > babySize) {
 				double newPX = board.evolvioColor.random(-0.01f, 0.01f);
-				double newPY = board.evolvioColor.random(-0.01f, 0.01f); // To
+				double newPY = board.evolvioColor.random(-0.01f, 0.01f);
+				while (newPY == 0f){
+					newPY = board.evolvioColor.random(-0.01f, 0.01f);
+				}
+																		// To
 																		// avoid
 																		// landing
 				// directly on
 				// parents,
 				// resulting in
 				// division by 0)
+				//newPX = 0f;
+				//newPY = 0f;
 				double newHue = 0;
 				double newSaturation = 0;
 				double newBrightness = 0;
@@ -486,7 +615,14 @@ public class Creature extends SoftBody implements java.io.Serializable{
 					int chosenIndex = (int) board.evolvioColor.random(0, parents.size());
 					Creature parent = parents.get(chosenIndex);
 					parents.remove(chosenIndex);
-					parent.energy -= babySize * (parent.getBabyEnergy() / availableEnergy);
+					double lostEnergy = babySize * (parent.getBabyEnergy() / availableEnergy);
+					if(Double.isNaN(lostEnergy) || Double.isInfinite(lostEnergy)){
+						System.out.println("Name: " + parent.name);
+						System.out.println("Energy: " + parent.energy);
+					}
+					else if(!mutateBrain){
+						parent.energy -= lostEnergy;
+					}
 					newPX += parent.px / parentsTotal;
 					newPY += parent.py / parentsTotal;
 					newHue += parent.hue / parentsTotal;
@@ -495,16 +631,29 @@ public class Creature extends SoftBody implements java.io.Serializable{
 					newMouthHue += parent.mouthHue / parentsTotal;
 					parentNames[i] = parent.name;
 					parentIds[i] = parent.id;
+					
 					if (parent.gen > highestGen) {
 						highestGen = parent.gen;
 					}
+					
+					if (parent.mut > highestMut) {
+						highestMut = parent.mut;
+					}
+					
+					
 				}
 				newSaturation = 1;
 				newBrightness = 1;
+				if (mutateBrain){
+					newBrain = new Brain(board, null, null);
+					highestGen = 0;
+					highestMut++;
+				}
+				numChildren++;
 				board.creatures.add(new Creature(newPX, newPY, 0, 0, babySize, density, newHue,
 						newSaturation, newBrightness, board,
 						board.evolvioColor.random(0, 2 * EvolvioColor.PI), 0, stitchName(parentNames),
-						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue));
+						andifyParents(parentNames), true, newBrain, highestGen + 1, newMouthHue, highestMut));
 			}
 		}
 	}
@@ -532,7 +681,12 @@ public class Creature extends SoftBody implements java.io.Serializable{
 	}
 
 	public String getCreatureName() {
-		return capitalize(name);
+		if (EvolvioColor.showStats){
+			return capitalize(name) + " (" + mut + "," + gen + ")";
+		} else {
+			return capitalize(name);
+		}
+		
 	}
 
 	public String capitalize(String n) {
@@ -568,6 +722,7 @@ public class Creature extends SoftBody implements java.io.Serializable{
 		previousEnergy[0] = energy;
 	}
 
+	// What is being measured to rank creatures
 	public double measure(int choice) {
 		int sign = 1 - 2 * (choice % 2);
 		if (choice < 2) {
@@ -576,6 +731,8 @@ public class Creature extends SoftBody implements java.io.Serializable{
 			return sign * birthTime;
 		} else if (choice == 6 || choice == 7) {
 			return sign * gen;
+		} else if (choice == 8 || choice == 9) {
+			return sign * mut;
 		}
 		return 0;
 	}

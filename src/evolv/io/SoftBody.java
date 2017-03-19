@@ -121,6 +121,9 @@ class SoftBody implements java.io.Serializable{
 		for (int i = 0; i < colliders.size(); i++) {
 			SoftBody collider = colliders.get(i);
 			float distance = EvolvioColor.dist((float) px, (float) py, (float) collider.px, (float) collider.py);
+			if (distance == 0f){
+				distance = 0.001f;
+			}
 			double combinedRadius = getRadius() + collider.getRadius();
 			if (distance < combinedRadius) {
 				double force = combinedRadius * COLLISION_FORCE;
@@ -158,6 +161,9 @@ class SoftBody implements java.io.Serializable{
 	}
 
 	public double getMass() {
+		if (density == 0){
+			density = 1;
+		}
 		return energy / ENERGY_DENSITY * density;
 	}
 }

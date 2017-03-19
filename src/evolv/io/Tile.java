@@ -115,7 +115,12 @@ class Tile implements java.io.Serializable {
 		if (canCauseIteration) {
 			iterate();
 		}
-		foodLevel += amount;
+		if (Double.isFinite(amount) && !Double.isNaN(amount)){
+			foodLevel += amount;
+		}
+		if (!Double.isFinite(foodLevel) || Double.isNaN(foodLevel)){
+			foodLevel = 300;
+		}
 		/*
 		 * if (foodLevel > 0) { foodType += (addedFoodType - foodType) * (amount
 		 * / foodLevel); // We're adding new plant growth, so we gotta "mix" the
