@@ -65,7 +65,7 @@ class Board implements java.io.Serializable {
 													// details at
 	FileManager fileManager;
 	int buttonColor;
-	public static int columns = 2;
+	public static int columns = 3;
 	final double FLASH_SPEED = 80;
 	boolean userControl;
 
